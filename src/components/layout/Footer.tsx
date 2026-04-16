@@ -1,14 +1,23 @@
 import { Link } from 'react-router-dom';
 import { Ticket, Globe, ChatCircle, ShareNetwork, Play } from '@phosphor-icons/react';
+import { useMemo } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { canBrowseMarketplace } from '@/lib/marketplaceAccess';
 
 export function Footer() {
-  const footerLinks: Record<string, { label: string; to: string }[]> = {
-    Platform: [
+  const { user } = useAuth();
+
+  const footerLinks: Record<string, { label: string; to: string }[]> = useMemo(() => {
+    const platform: { label: string; to: string }[] = [
       { label: 'Browse Events', to: '/events' },
-      { label: 'Marketplace', to: '/marketplace' },
       { label: 'My Tickets', to: '/my-tickets' },
       { label: 'Auction', to: '/auction' },
-    ],
+    ];
+    if (canBrowseMarketplace(user)) {
+      platform.splice(1, 0, { label: 'Marketplace', to: '/marketplace' });
+    }
+    return {
+      Platform: platform,
     Company: [
       { label: 'About Us', to: '/events' },
       { label: 'Careers', to: '/events' },
@@ -21,13 +30,14 @@ export function Footer() {
       { label: 'Terms of Service', to: '/terms' },
       { label: 'Privacy Policy', to: '/privacy' },
     ],
-    Organizers: [
-      { label: 'Create Event', to: '/events' },
-      { label: 'Organizer Dashboard', to: '/events' },
-      { label: 'Scanner App', to: '/events' },
-      { label: 'Analytics', to: '/events' },
-    ],
-  };
+      Organizers: [
+        { label: 'Create Event', to: '/events' },
+        { label: 'Organizer Dashboard', to: '/events' },
+        { label: 'Scanner App', to: '/events' },
+        { label: 'Analytics', to: '/events' },
+      ],
+    };
+  }, [user]);
 
   return (
     <footer className="bg-ink text-white">

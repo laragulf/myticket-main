@@ -1,8 +1,11 @@
 import { Outlet } from 'react-router-dom';
 import { Link } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { Ticket } from '@phosphor-icons/react';
 
 export function AuthLayout() {
+  const location = useLocation();
+  const isRegister = location.pathname === '/register';
   return (
     <div className="min-h-screen bg-ink-5 flex flex-col">
       <header className="border-b border-ink-10 bg-white/90 backdrop-blur-sm">
@@ -18,7 +21,7 @@ export function AuthLayout() {
         </div>
       </header>
       <div className="flex flex-1 items-center justify-center px-6 py-12">
-        <div className="w-full max-w-md">
+        <div className={`w-full ${isRegister ? 'max-w-3xl' : 'max-w-md'}`}>
           <Outlet />
         </div>
       </div>

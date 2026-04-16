@@ -39,7 +39,11 @@ export function CategorySection() {
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
           {categories.map((cat) => (
-            <CategoryTile key={cat.label} {...cat} />
+            <CategoryTile
+              key={cat.label}
+              {...cat}
+              to={`/events?category=${encodeURIComponent(cat.label)}`}
+            />
           ))}
         </div>
       </div>

@@ -41,7 +41,18 @@ export function getEventByIdSync(id: string): MockEvent | undefined {
   return MOCK_EVENTS.find((x) => x.id === id);
 }
 
-/** Categories for filter dropdown */
-export const EVENT_CATEGORIES = ['Music', 'Comedy', 'Sports', 'Arts & Culture'] as const;
+/** Categories for filter dropdown (aligned with landing “Explore by interest” tiles). */
+export const EVENT_CATEGORIES = [
+  'Music',
+  'Sports',
+  'Arts & Culture',
+  'Comedy',
+  'Online',
+  'Family',
+  'Food & Drink',
+  'Fashion',
+  'Tech',
+  'Theatre',
+] as const;
 
 export const EVENT_CITIES = ['Riyadh', 'Jeddah', 'Khobar', 'Dubai'] as const;

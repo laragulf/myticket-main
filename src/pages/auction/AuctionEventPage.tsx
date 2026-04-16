@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { Clock, MapPin } from '@phosphor-icons/react';
+import { PLATFORM_AUCTION_COMMISSION_PCT } from '@/lib/constants';
 import { getEventById } from '@/services/eventsService';
 import { getListingsByEvent } from '@/services/auctionService';
 import type { MockEvent } from '@/types/domain';
@@ -68,7 +69,8 @@ export function AuctionEventPage() {
               {event.venue}, {event.city}
             </p>
             <p className="mt-2 text-[13px] text-ink-40">
-              {listings.length} resale listing{listings.length === 1 ? '' : 's'} · original price or less
+              {listings.length} resale listing{listings.length === 1 ? '' : 's'} · original price or less ·{' '}
+              {PLATFORM_AUCTION_COMMISSION_PCT}% platform commission on successful sales (demo)
             </p>
             <Link
               to={`/events/${event.id}`}

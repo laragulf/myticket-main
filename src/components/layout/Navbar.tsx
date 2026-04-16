@@ -1,15 +1,29 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Ticket, MagnifyingGlass, Bell, Hamburger, X, Globe, IconContext } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNotifications } from '@/contexts/NotificationContext';
 import { cn } from '@/lib/utils';
+import { canAccessEngagementsInbox, canBrowseMarketplace } from '@/lib/marketplaceAccess';
 
 export function Navbar() {
   const { user, signOut } = useAuth();
+  const { items, unreadCount, markRead, markAllRead, clearAll } = useNotifications();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
   const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    if (!notifOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [notifOpen]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 1);
@@ -18,12 +32,20 @@ export function Navbar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const navLinks = [
-    { label: 'Events', to: '/events' },
-    { label: 'Marketplace', to: '/marketplace' },
-    { label: 'Auction', to: '/auction' },
-    { label: 'My Tickets', to: '/my-tickets' },
-  ];
+  const navLinks = useMemo(() => {
+    const links: { label: string; to: string }[] = [{ label: 'Events', to: '/events' }];
+    if (canBrowseMarketplace(user)) {
+      links.push({ label: 'Marketplace', to: '/marketplace' });
+    }
+    if (canAccessEngagementsInbox(user)) {
+      links.push({ label: 'Engagements', to: '/engagements' });
+    }
+    links.push(
+      { label: 'Auction', to: '/auction' },
+      { label: 'My Tickets', to: '/my-tickets' }
+    );
+    return links;
+  }, [user]);
 
   return (
     <IconContext.Provider value={{ weight: 'fill' }}>
@@ -74,13 +96,83 @@ export function Navbar() {
               >
                 <MagnifyingGlass size={18} />
               </button>
-              <button
-                type="button"
-                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-ink-40 transition-colors hover:bg-ink-5 hover:text-ink"
-                aria-label="Notifications"
-              >
-                <Bell size={18} />
-              </button>
+              <div className="relative" ref={notifRef}>
+                <button
+                  type="button"
+                  onClick={() => setNotifOpen((o) => !o)}
+                  className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-ink-40 transition-colors hover:bg-ink-5 hover:text-ink"
+                  aria-label="Notifications"
+                  aria-expanded={notifOpen}
+                >
+                  <Bell size={18} />
+                  {unreadCount > 0 && (
+                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-coral px-1 text-[10px] font-bold text-white">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+                {notifOpen && (
+                  <div className="absolute right-0 top-[calc(100%+8px)] z-[60] w-[min(100vw-2rem,20rem)] rounded-2xl border border-ink-10 bg-white py-2 shadow-card-lg">
+                    <div className="flex items-center justify-between border-b border-ink-10 px-3 pb-2">
+                      <span className="text-[11px] font-bold uppercase tracking-wide text-ink-40">Notifications</span>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          className="text-[11px] font-semibold text-coral hover:underline"
+                          onClick={() => markAllRead()}
+                        >
+                          Mark read
+                        </button>
+                        <button
+                          type="button"
+                          className="text-[11px] font-semibold text-ink-40 hover:underline"
+                          onClick={() => clearAll()}
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    </div>
+                    <div className="max-h-72 overflow-y-auto">
+                      {items.length === 0 ? (
+                        <p className="px-3 py-6 text-center text-[13px] text-ink-40">No notifications yet.</p>
+                      ) : (
+                        items.map((n) => (
+                          <div
+                            key={n.id}
+                            className={cn(
+                              'border-b border-ink-5 px-3 py-2.5 last:border-0',
+                              !n.read && 'bg-lemon/10'
+                            )}
+                          >
+                            {n.href ? (
+                              <Link
+                                to={n.href}
+                                className="block text-left"
+                                onClick={() => {
+                                  markRead(n.id);
+                                  setNotifOpen(false);
+                                }}
+                              >
+                                <p className="text-[13px] font-bold text-ink">{n.title}</p>
+                                <p className="mt-0.5 text-[12px] text-ink-60">{n.body}</p>
+                              </Link>
+                            ) : (
+                              <button
+                                type="button"
+                                className="w-full text-left"
+                                onClick={() => markRead(n.id)}
+                              >
+                                <p className="text-[13px] font-bold text-ink">{n.title}</p>
+                                <p className="mt-0.5 text-[12px] text-ink-60">{n.body}</p>
+                              </button>
+                            )}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
               <button
                 type="button"
                 className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-ink-40 transition-colors hover:bg-ink-5 hover:text-ink"

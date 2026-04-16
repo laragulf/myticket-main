@@ -94,8 +94,10 @@ export function listTicketForAuction(params: {
   ticket: MockTicket;
   price: number;
   endsAt: string;
+  /** Override default "You" (e.g. account deletion demo). */
+  sellerLabel?: string;
 }): MockAuctionListing {
-  const { ticket, price, endsAt } = params;
+  const { ticket, price, endsAt, sellerLabel } = params;
   if (price > ticket.pricePaid) {
     throw new Error('Price cannot exceed original purchase price');
   }
@@ -116,7 +118,7 @@ export function listTicketForAuction(params: {
     originalPrice: ticket.pricePaid,
     endsAt,
     seatLabel: ticket.seatLabel,
-    sellerLabel: 'You',
+    sellerLabel: sellerLabel ?? 'You',
     eventTitle: ticket.eventTitle,
     city: ticket.city,
     venue: ticket.venue,
@@ -142,4 +144,23 @@ export function giftTicketToEmail(ticketId: string, _recipient: string) {
   patchTicket(ticketId, {
     status: 'gifted',
   });
+}
+
+/** Account deletion (demo): list every active ticket on the auction at original price. */
+export async function queueTicketsForAccountDeletionMock() {
+  const tickets = await getMyTickets();
+  const active = tickets.filter((t) => t.status === 'active');
+  const endsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  for (const t of active) {
+    try {
+      listTicketForAuction({
+        ticket: t,
+        price: t.pricePaid,
+        endsAt,
+        sellerLabel: 'Former account (demo)',
+      });
+    } catch {
+      /* skip ineligible */
+    }
+  }
 }

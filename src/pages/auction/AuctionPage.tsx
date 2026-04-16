@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Clock } from '@phosphor-icons/react';
 import { MOCK_EVENTS } from '@/data/mockEvents';
+import { PLATFORM_AUCTION_COMMISSION_PCT } from '@/lib/constants';
 import { countListingsByEvent, getAllListings, nearestEndForEvent } from '@/services/auctionService';
 
 function formatRemaining(ms: number) {
@@ -49,8 +50,9 @@ export function AuctionPage() {
         <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-40">Resale</span>
         <h1 className="mt-2 text-[36px] font-extrabold tracking-tight text-ink">Auction</h1>
         <p className="mt-3 max-w-2xl text-[15px] text-ink-60">
-          Tickets at original price or less. Countdowns reset when listings end. Commission applies on successful
-          sales (demo).
+          Tickets at original price or less. Countdowns reset when listings end. Platform commission on successful
+          resale: <strong className="text-ink">{PLATFORM_AUCTION_COMMISSION_PCT}%</strong> (mock; configurable by admin
+          in production).
         </p>
 
         <p className="mt-4 text-[13px] text-ink-40">

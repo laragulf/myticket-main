@@ -1,6 +1,72 @@
 /** Domain types for mock main-website flows (replace with API types later). */
 
 export type LayoutType = 'seated' | 'free';
+export type UserRole = 'guest' | 'talent' | 'vendor' | 'organizer';
+export type TalentApplicationStatus = 'not_started' | 'draft' | 'submitted' | 'approved' | 'rejected';
+export type RoleOnboardingStatus = TalentApplicationStatus;
+export type OnboardingRole = 'talent' | 'vendor' | 'organizer';
+
+export interface BaseRegistrationFields {
+  fullName: string;
+  email: string;
+  password: string;
+  contactPhone: string;
+  agreeTerms: boolean;
+}
+
+export interface TalentOnboardingDraft {
+  fullName: string;
+  contactEmail: string;
+  contactPhone: string;
+  /** Optional profile photo URL or mock file name. */
+  profileImage?: string;
+  bio: string;
+  /** Saudi administrative region id (see `SAUDI_REGIONS`). */
+  saudiRegionId: string;
+  /** City name from Saudi cities list for the selected region. */
+  city: string;
+  travelReady: boolean;
+  locationPublic: boolean;
+  /** URLs and/or mock file names (video, image, certificate). */
+  verificationMedia: string[];
+  certificateName?: string;
+  acceptedQualityDisclaimer: boolean;
+}
+
+export interface VendorOnboardingDraft {
+  profileName: string;
+  contactEmail: string;
+  contactPhone: string;
+  bio: string;
+  serviceCategories: string[];
+  verificationDocuments: string[];
+  gallery: string[];
+  city: string;
+  coverageArea: string;
+}
+
+export interface OrganizerOnboardingDraft {
+  displayName: string;
+  profileImage: string;
+  bio: string;
+  email: string;
+  contactPhone: string;
+  location: string;
+  socialLinks: string[];
+  optionalDocument?: string;
+  isCompany: boolean;
+  companyName?: string;
+  companyInfo?: string;
+  ownerName: string;
+  ownerInfo: string;
+}
+
+export interface RoleOnboardingRecord<TDraft> {
+  status: RoleOnboardingStatus;
+  draft: TDraft;
+  submittedAt?: string;
+  rejectionReason?: string;
+}
 
 export interface OrganizerSummary {
   id: string;
@@ -104,6 +170,23 @@ export type SupportCategory =
   | 'other';
 
 export type EngagementStatus = 'pending' | 'accepted' | 'declined';
+export type TalentAvailability = 'available' | 'reserved';
+
+export interface MockOrganizerProfile {
+  id: string;
+  name: string;
+  bio: string;
+  city: string;
+  organizerType: string;
+  recentEvents: string[];
+}
+
+export interface MockEngagementMessage {
+  id: string;
+  sender: 'organizer' | 'talent';
+  text: string;
+  createdAt: string;
+}
 
 export interface MockEngagement {
   id: string;
@@ -113,6 +196,8 @@ export interface MockEngagement {
   preview: string;
   status: EngagementStatus;
   createdAt: string;
+  organizerProfile: MockOrganizerProfile;
+  messages: MockEngagementMessage[];
 }
 
 export interface MarketplaceTalent {
@@ -125,7 +210,7 @@ export interface MarketplaceTalent {
   rating: number;
   image: string;
   gallery: string[];
-  availability: 'available' | 'reserved';
+  availability: TalentAvailability;
 }
 
 export interface MarketplaceVendor {

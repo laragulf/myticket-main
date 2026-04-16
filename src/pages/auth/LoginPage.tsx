@@ -2,12 +2,15 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
+import { getSafeRedirectPath } from '@/lib/navigation';
 
 export function LoginPage() {
   const { signIn, signInGoogle } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname ?? '/';
+  const fromRaw = (location.state as { from?: { pathname: string } } | null)?.from?.pathname;
+  const from = getSafeRedirectPath(fromRaw) ?? '/';
+  const registerState = { from: { pathname: from } };
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -39,7 +42,7 @@ export function LoginPage() {
       <h1 className="text-2xl font-extrabold tracking-tight text-ink">Sign in</h1>
       <p className="mt-2 text-[14px] text-ink-60">
         New to MyTicket?{' '}
-        <Link to="/register" className="font-semibold text-coral hover:underline">
+        <Link to="/register" state={registerState} className="font-semibold text-coral hover:underline">
           Create an account
         </Link>
       </p>

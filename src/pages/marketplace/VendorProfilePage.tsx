@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
+import { Star } from '@phosphor-icons/react';
 import { getVendorById } from '@/services/marketplaceService';
 import type { MarketplaceVendor } from '@/types/domain';
 
@@ -44,11 +45,17 @@ export function VendorProfilePage() {
               {vendor.city} · ★ {vendor.rating.toFixed(1)}
             </p>
             <p className="mt-6 text-[15px] leading-relaxed text-ink-60">{vendor.bio}</p>
-            <p className="mt-6 rounded-xl bg-ink-5 p-4 text-[13px] text-ink-60">
-              Business verification documents and service coverage are shown in the full product.
-            </p>
           </div>
         </div>
+
+        <section className="mt-12 rounded-2xl border border-ink-10 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-extrabold text-ink">Verification &amp; coverage</h2>
+          <ul className="mt-3 list-inside list-disc space-y-1 text-[14px] text-ink-60">
+            <li>Commercial registration verified (mock)</li>
+            <li>Service area: {vendor.city} and surrounding regions (demo)</li>
+            <li>Insurance certificate on file for large events (simulated)</li>
+          </ul>
+        </section>
 
         {vendor.gallery.length > 0 && (
           <div className="mt-12">
@@ -60,6 +67,25 @@ export function VendorProfilePage() {
             </div>
           </div>
         )}
+
+        <section className="mt-12 rounded-2xl border border-ink-10 bg-ink-5/40 p-6">
+          <h2 className="text-lg font-extrabold text-ink">Ratings</h2>
+          <p className="mt-2 flex items-center gap-2 text-[15px] text-ink">
+            <Star size={22} className="text-amber" weight="fill" />
+            <span className="font-bold">{vendor.rating.toFixed(1)}</span>
+            <span className="text-[13px] font-medium text-ink-60">from mock jobs</span>
+          </p>
+          <p className="mt-4 text-[13px] text-ink-60">
+            Mutual ratings with organizers appear after a completed booking (full product).
+          </p>
+          <button
+            type="button"
+            disabled
+            className="mt-4 w-full rounded-full border border-dashed border-ink-20 bg-white px-5 py-3 text-[13px] font-semibold text-ink-40 sm:w-auto"
+          >
+            Mutual ratings after completed work
+          </button>
+        </section>
       </div>
     </div>
   );

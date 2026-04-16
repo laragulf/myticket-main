@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom';
 import { RequireAuth } from '@/components/auth/RequireAuth';
+import { RequireMarketplaceBrowse } from '@/components/auth/RequireMarketplaceBrowse';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { MainLayout } from '@/layouts/MainLayout';
 import { LandingPage } from '@/pages/LandingPage';
@@ -12,6 +13,7 @@ import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage';
 import { AuctionEventPage } from '@/pages/auction/AuctionEventPage';
 import { AuctionPage } from '@/pages/auction/AuctionPage';
 import { CheckoutPage } from '@/pages/checkout/CheckoutPage';
+import { SeatSelectionPage } from '@/pages/checkout/SeatSelectionPage';
 import { EventDetailPage } from '@/pages/events/EventDetailPage';
 import { EventsPage } from '@/pages/events/EventsPage';
 import { CookiesPage } from '@/pages/legal/CookiesPage';
@@ -41,9 +43,11 @@ export function App() {
       <Route element={<MainLayout />}>
         <Route path="/events" element={<EventsPage />} />
         <Route path="/events/:eventId" element={<EventDetailPage />} />
-        <Route path="/marketplace" element={<MarketplacePage />} />
-        <Route path="/marketplace/talent/:id" element={<TalentProfilePage />} />
-        <Route path="/marketplace/vendor/:id" element={<VendorProfilePage />} />
+        <Route element={<RequireMarketplaceBrowse />}>
+          <Route path="/marketplace" element={<MarketplacePage />} />
+          <Route path="/marketplace/talent/:id" element={<TalentProfilePage />} />
+          <Route path="/marketplace/vendor/:id" element={<VendorProfilePage />} />
+        </Route>
         <Route path="/artists/:slug" element={<ArtistRedirectPage />} />
         <Route path="/auction" element={<AuctionPage />} />
         <Route path="/auction/events/:eventId" element={<AuctionEventPage />} />
@@ -53,11 +57,12 @@ export function App() {
         <Route path="/cookies" element={<CookiesPage />} />
 
         <Route element={<RequireAuth />}>
+          <Route path="/checkout/:eventId/seats" element={<SeatSelectionPage />} />
           <Route path="/checkout/:eventId" element={<CheckoutPage />} />
           <Route path="/my-tickets" element={<MyTicketsPage />} />
           <Route path="/my-tickets/:ticketId" element={<TicketDetailPage />} />
           <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/marketplace/engagements" element={<EngagementsPage />} />
+          <Route path="/engagements" element={<EngagementsPage />} />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />

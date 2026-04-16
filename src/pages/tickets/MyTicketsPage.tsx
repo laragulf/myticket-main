@@ -4,6 +4,8 @@ import { getMyTickets } from '@/services/ticketsService';
 import type { MockTicket, TicketStatus } from '@/types/domain';
 import { cn } from '@/lib/utils';
 
+const REMINDERS_BANNER_KEY = 'myticket_reminders_banner_dismissed';
+
 const STATUS_LABEL: Record<TicketStatus, string> = {
   active: 'Active',
   auction: 'In auction',
@@ -16,6 +18,13 @@ const STATUS_LABEL: Record<TicketStatus, string> = {
 export function MyTicketsPage() {
   const [tickets, setTickets] = useState<MockTicket[]>([]);
   const [filter, setFilter] = useState<TicketStatus | 'all'>('all');
+  const [remindersBannerOpen, setRemindersBannerOpen] = useState(() => {
+    try {
+      return sessionStorage.getItem(REMINDERS_BANNER_KEY) !== '1';
+    } catch {
+      return true;
+    }
+  });
 
   useEffect(() => {
     getMyTickets().then(setTickets);
@@ -33,6 +42,30 @@ export function MyTicketsPage() {
         <p className="mt-2 max-w-xl text-[15px] text-ink-60">
           View, download, gift, or list tickets. Full QR and wallet integration connects when your backend is live.
         </p>
+
+        {remindersBannerOpen && (
+          <div className="relative mt-6 rounded-2xl border border-sky/40 bg-sky/15 px-4 py-3 pr-12 text-[13px] leading-relaxed text-ink-60">
+            <p>
+              <strong className="text-ink">Event reminders</strong> (24h / 1h) shown elsewhere in this demo are
+              illustrative only. In production they would be delivered by email and push based on your preferences.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                try {
+                  sessionStorage.setItem(REMINDERS_BANNER_KEY, '1');
+                } catch {
+                  /* ignore */
+                }
+                setRemindersBannerOpen(false);
+              }}
+              className="absolute right-3 top-3 rounded-full px-2 py-1 text-[11px] font-bold text-ink-40 hover:bg-white/80"
+              aria-label="Dismiss"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         <div className="mt-8 flex flex-wrap gap-2">
           {(['all', 'active', 'auction', 'gifted', 'used', 'expired', 'cancelled'] as const).map((s) => (

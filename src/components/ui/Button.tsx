@@ -41,26 +41,91 @@ const buttonVariants = cva(
   }
 )
 
+type ButtonVariant = NonNullable<VariantProps<typeof buttonVariants>["variant"]>
+type ButtonSize = NonNullable<VariantProps<typeof buttonVariants>["size"]>
+type LegacyVariant = "dark" | "primary" | "danger"
+type LegacySize = "md" | "xl"
+
+function normalizeVariant(variant: ButtonVariant | LegacyVariant): ButtonVariant {
+  if (variant === "dark" || variant === "primary") return "default"
+  if (variant === "danger") return "destructive"
+  return variant
+}
+
+function normalizeSize(size: ButtonSize | LegacySize): ButtonSize {
+  if (size === "md") return "lg"
+  if (size === "xl") return "lg"
+  return size
+}
+
+function legacyVariantClass(variant: ButtonVariant | LegacyVariant) {
+  if (variant === "dark") return "bg-ink text-white hover:bg-ink-80"
+  if (variant === "primary") return "bg-coral text-white hover:bg-coral/90"
+  if (variant === "danger") return "bg-coral text-white hover:bg-coral/90"
+  return ""
+}
+
+function legacySizeClass(size: ButtonSize | LegacySize) {
+  if (size === "md") return "h-11 px-5 text-[14px]"
+  if (size === "xl") return "h-12 px-6 text-[15px]"
+  return ""
+}
+
 function Button({
   className,
   variant = "default",
   size = "default",
   asChild = false,
+  loading = false,
+  loadingText,
+  icon: Icon,
+  disabled,
+  children,
   ...props
 }: React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & {
+  Omit<VariantProps<typeof buttonVariants>, "variant" | "size"> & {
+    variant?: ButtonVariant | LegacyVariant
+    size?: ButtonSize | LegacySize
     asChild?: boolean
+    loading?: boolean
+    loadingText?: string
+    icon?: React.ComponentType<any>
   }) {
   const Comp = asChild ? Slot.Root : "button"
+  const normalizedVariant = normalizeVariant(variant)
+  const normalizedSize = normalizeSize(size)
+  const legacyToneClass = legacyVariantClass(variant)
+  const legacyScaleClass = legacySizeClass(size)
+  const isDisabled = loading || disabled
 
   return (
     <Comp
       data-slot="button"
-      data-variant={variant}
-      data-size={size}
-      className={cn(buttonVariants({ variant, size, className }))}
+      data-variant={normalizedVariant}
+      data-size={normalizedSize}
+      data-icon={Icon ? "inline-end" : undefined}
+      className={cn(
+        buttonVariants({ variant: normalizedVariant, size: normalizedSize }),
+        legacyToneClass,
+        legacyScaleClass,
+        className
+      )}
+      disabled={isDisabled}
+      aria-busy={loading || undefined}
       {...props}
-    />
+    >
+      {loading ? (
+        <>
+          <span className="size-3 animate-spin rounded-full border-2 border-current border-r-transparent" />
+          <span>{loadingText ?? children}</span>
+        </>
+      ) : (
+        <>
+          <span>{children}</span>
+          {Icon ? <Icon size={16} weight="bold" className="shrink-0" /> : null}
+        </>
+      )}
+    </Comp>
   )
 }
 

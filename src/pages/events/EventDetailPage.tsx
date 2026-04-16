@@ -7,7 +7,6 @@ import {
   ShareNetwork,
   Star,
   Ticket as TicketIcon,
-  UsersThree,
 } from '@phosphor-icons/react';
 import { EventCard as RichEventCard } from '@/components/cards/EventCard';
 import {
@@ -18,7 +17,15 @@ import {
   CarouselPrevious as ShadcnCarouselPrevious,
 } from '@/components/ui/shadcn-carousel';
 import { Badge } from '@/components/ui/Badge';
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarGroup,
+  AvatarGroupCount,
+  AvatarImage,
+} from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNotifications } from '@/contexts/NotificationContext';
 import { formatAttendingLabel } from '@/lib/attendingFormat';
 import { getListingsByEvent } from '@/services/auctionService';
 import { getEventById, listEvents } from '@/services/eventsService';
@@ -27,6 +34,7 @@ import { userHasTicketWithStatus } from '@/services/ticketsService';
 import { isOnWaitlist, joinWaitlist } from '@/services/waitlistService';
 import type { MockAuctionListing, MockEvent } from '@/types/domain';
 import { cn } from '@/lib/utils';
+import { canBrowseMarketplace } from '@/lib/marketplaceAccess';
 import type { UseEmblaCarouselType } from 'embla-carousel-react';
 
 function formatRange(start: string, end: string) {
@@ -104,10 +112,10 @@ function ShareRow({ title, url }: { title: string; url: string }) {
       <button
         type="button"
         onClick={copy}
-        className="inline-flex items-center gap-2 rounded-full border border-ink-10 bg-white px-4 py-2 text-[12px] font-semibold text-ink transition-colors hover:bg-ink-5"
+        className="inline-flex items-center gap-2 rounded-full border-2 border-ink bg-white px-4 py-2 text-[12px] font-bold text-ink shadow-sm transition-colors hover:bg-ink-5"
       >
         <Copy size={16} weight="bold" />
-        {copied ? 'Copied' : 'Copy link'}
+        {copied ? 'Copied!' : 'Copy link'}
       </button>
       <a
         href={`https://twitter.com/intent/tweet?url=${encoded}&text=${text}`}
@@ -153,6 +161,8 @@ export function EventDetailPage() {
   const { eventId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { pushNotification } = useNotifications();
+  const showMarketplaceLinks = canBrowseMarketplace(user);
   const [event, setEvent] = useState<MockEvent | null | undefined>(undefined);
   const [relatedEvents, setRelatedEvents] = useState<MockEvent[]>([]);
   const [activeCoverIdx, setActiveCoverIdx] = useState(0);
@@ -254,6 +264,7 @@ export function EventDetailPage() {
 
   const url = typeof window !== 'undefined' ? window.location.href : '';
   const avatars = event.attendeeAvatars?.slice(0, 3) ?? [];
+  const avatarsHiddenCount = Math.max(0, (event.attendeeAvatars?.length ?? 0) - avatars.length);
   const boughtLabel = formatAttendingLabel(event.attendingCount ?? Math.max(450, event.ticketsLeft * 12));
   const mapEmbedUrl = buildMapEmbedUrl(event);
   const mapOpenUrl = buildMapOpenUrl(event);
@@ -270,8 +281,23 @@ export function EventDetailPage() {
   }
 
   function onJoinWaitlist() {
-    if (!eventId) return;
-    if (joinWaitlist(eventId)) setWaitlistJoined(true);
+    if (!eventId || !event) return;
+    if (!joinWaitlist(eventId)) return;
+    setWaitlistJoined(true);
+    pushNotification({
+      title: "You're on the waitlist",
+      body: `We'll notify you if tickets return for ${event.title}.`,
+      kind: 'waitlist',
+      href: `/events/${eventId}`,
+    });
+    window.setTimeout(() => {
+      pushNotification({
+        title: '(Demo) A ticket may be available',
+        body: `Inventory changes often — open ${event.title} to check.`,
+        kind: 'waitlist',
+        href: `/events/${eventId}`,
+      });
+    }, 8000);
   }
 
   return (
@@ -314,18 +340,16 @@ export function EventDetailPage() {
           <div className="rounded-3xl border border-ink-10 bg-surface-card p-5">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="flex -space-x-2">
+                <AvatarGroup className="grayscale">
                   {avatars.map((avatar, idx) => (
-                    <img
-                      key={`${avatar}-${idx}`}
-                      src={avatar}
-                      alt=""
-                      className="h-8 w-8 rounded-full border-2 border-white object-cover"
-                    />
+                    <Avatar key={`${avatar}-${idx}`}>
+                      <AvatarImage src={avatar} alt={`Attendee ${idx + 1}`} />
+                      <AvatarFallback>{`U${idx + 1}`}</AvatarFallback>
+                    </Avatar>
                   ))}
-                </div>
+                  {avatarsHiddenCount > 0 && <AvatarGroupCount>{`+${avatarsHiddenCount}`}</AvatarGroupCount>}
+                </AvatarGroup>
                 <div className="inline-flex items-center gap-2 text-[13px] font-semibold text-ink">
-                  <UsersThree size={16} weight="bold" className="text-coral" />
                   <span className="font-mono text-[15px] font-extrabold text-ink">{boughtLabel}</span>
                   <span className="text-[12px] font-medium text-ink-60">tickets bought</span>
                 </div>
@@ -555,12 +579,18 @@ export function EventDetailPage() {
                           <Badge label="Participating" variant="default" className="mt-2 text-[10px]" />
                         </div>
                       </div>
-                      <Link
-                        to={`/marketplace/talent/${t.id}`}
-                        className="mt-3 inline-flex h-9 items-center justify-center rounded-full border border-ink-10 px-4 text-[12px] font-semibold text-ink hover:bg-ink-5"
-                      >
-                        View profile
-                      </Link>
+                      {showMarketplaceLinks ? (
+                        <Link
+                          to={`/marketplace/talent/${t.id}`}
+                          className="mt-3 inline-flex h-9 items-center justify-center rounded-full border border-ink-10 px-4 text-[12px] font-semibold text-ink hover:bg-ink-5"
+                        >
+                          View profile
+                        </Link>
+                      ) : (
+                        <p className="mt-3 text-[11px] text-ink-40">
+                          Marketplace profiles are visible to organizers and vendors.
+                        </p>
+                      )}
                     </article>
                   </li>
                 ))}
@@ -574,13 +604,20 @@ export function EventDetailPage() {
               <ul className="mt-4 space-y-2">
                 {event.vendors.map((v) => (
                   <li key={v.id}>
-                    <Link
-                      to={`/marketplace/vendor/${v.id}`}
-                      className="flex items-center justify-between rounded-xl border border-ink-10 bg-white px-4 py-3 font-medium text-ink hover:border-coral"
-                    >
-                      <span>{v.name}</span>
-                      <span className="text-[12px] text-ink-40">{v.serviceType}</span>
-                    </Link>
+                    {showMarketplaceLinks ? (
+                      <Link
+                        to={`/marketplace/vendor/${v.id}`}
+                        className="flex items-center justify-between rounded-xl border border-ink-10 bg-white px-4 py-3 font-medium text-ink hover:border-coral"
+                      >
+                        <span>{v.name}</span>
+                        <span className="text-[12px] text-ink-40">{v.serviceType}</span>
+                      </Link>
+                    ) : (
+                      <div className="flex items-center justify-between rounded-xl border border-ink-10 bg-white px-4 py-3 font-medium text-ink">
+                        <span>{v.name}</span>
+                        <span className="text-[12px] text-ink-40">{v.serviceType}</span>
+                      </div>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -696,7 +733,7 @@ export function EventDetailPage() {
             </ul>
             {event.ticketsLeft > 0 ? (
               <Link
-                to={`/checkout/${event.id}`}
+                to={event.layoutType === 'seated' ? `/checkout/${event.id}/seats` : `/checkout/${event.id}`}
                 className="mt-6 flex h-12 w-full items-center justify-center rounded-full bg-ink text-[14px] font-semibold text-white transition-colors hover:bg-ink-80"
               >
                 Proceed to checkout

@@ -10,9 +10,11 @@ import {
 } from '@/services/ticketsService';
 import type { MockTicket } from '@/types/domain';
 import { cn } from '@/lib/utils';
+import { useNotifications } from '@/contexts/NotificationContext';
 
 export function TicketDetailPage() {
   const { ticketId } = useParams();
+  const { pushNotification } = useNotifications();
   const [ticket, setTicket] = useState<MockTicket | null | undefined>(undefined);
   const [giftOpen, setGiftOpen] = useState(false);
   const [auctionOpen, setAuctionOpen] = useState(false);
@@ -20,6 +22,7 @@ export function TicketDetailPage() {
   const [listPrice, setListPrice] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [giftDone, setGiftDone] = useState(false);
+  const [walletHint, setWalletHint] = useState(false);
 
   const reload = useCallback(() => {
     if (!ticketId) return;
@@ -52,9 +55,34 @@ export function TicketDetailPage() {
       return;
     }
     giftTicketToEmail(ticket.id, recipient.trim());
+    pushNotification({
+      title: 'Gift sent',
+      body: `Ticket for ${ticket.eventTitle} queued to ${recipient.trim()} (demo).`,
+      kind: 'gift',
+      href: '/my-tickets',
+    });
     setGiftDone(true);
     setGiftOpen(false);
     reload();
+  }
+
+  function downloadTicketMock() {
+    if (!ticket) return;
+    const lines = [
+      'MyTicket — demo receipt',
+      `Order: ${ticket.orderRef}`,
+      `Event: ${ticket.eventTitle}`,
+      `${ticket.venue}, ${ticket.city}`,
+      `Starts: ${ticket.dateStart}`,
+      `${ticket.typeName}${ticket.seatLabel ? ` · ${ticket.seatLabel}` : ''}`,
+    ];
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `myticket-${ticket.orderRef.replace(/[^\w-]+/g, '')}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   function onConfirmAuction(e: React.FormEvent) {
@@ -102,6 +130,12 @@ export function TicketDetailPage() {
             Reminders: typical sends at <strong className="text-ink">24h</strong> and{' '}
             <strong className="text-ink">1h</strong> before doors (channels configured by admin).
           </div>
+        )}
+
+        {walletHint && (
+          <p className="mt-4 rounded-lg bg-sky/20 px-4 py-2 text-[13px] text-ink">
+            Would open Apple Wallet / Google Wallet with a pass for this ticket (demo).
+          </p>
         )}
 
         {giftDone && (
@@ -181,10 +215,22 @@ export function TicketDetailPage() {
         )}
 
         <div className="mt-10 grid gap-3 sm:grid-cols-2">
-          <Button variant="outline" size="md" icon={DownloadSimple} disabled={!canAct}>
+          <Button
+            variant="outline"
+            size="md"
+            icon={DownloadSimple}
+            disabled={!canAct}
+            onClick={() => downloadTicketMock()}
+          >
             Download PDF
           </Button>
-          <Button variant="outline" size="md" icon={Wallet} disabled={!canAct}>
+          <Button
+            variant="outline"
+            size="md"
+            icon={Wallet}
+            disabled={!canAct}
+            onClick={() => setWalletHint(true)}
+          >
             Add to Wallet
           </Button>
           <Button

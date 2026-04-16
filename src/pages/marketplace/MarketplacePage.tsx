@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { listTalents, listVendors } from '@/services/marketplaceService';
 import type { MarketplaceTalent, MarketplaceVendor } from '@/types/domain';
 import { cn } from '@/lib/utils';
 
 export function MarketplacePage() {
+  const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const typeParam = searchParams.get('type');
   const [tab, setTab] = useState<'talent' | 'vendor'>(typeParam === 'vendor' ? 'vendor' : 'talent');
@@ -33,15 +35,30 @@ export function MarketplacePage() {
         <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-ink-60">
           Discover verified performers and service providers. Financial arrangements happen outside the platform.
         </p>
-        <p className="mt-4">
-          <Link
-            to="/marketplace/engagements"
-            className="text-[13px] font-bold text-coral underline-offset-2 hover:underline"
-          >
-            Organizer engagements (chat)
-          </Link>{' '}
-          — accept or decline offers (sign in).
-        </p>
+        {user?.role === 'vendor' && (
+          <p className="mt-4">
+            <Link to="/engagements" className="text-[13px] font-bold text-coral underline-offset-2 hover:underline">
+              Engagement inbox
+            </Link>{' '}
+            — chat with organizers about offers and bookings.
+          </p>
+        )}
+        {user &&
+          (user.vendorOnboarding?.status === 'draft' ||
+            user.vendorOnboarding?.status === 'submitted' ||
+            user.organizerOnboarding?.status === 'draft' ||
+            user.organizerOnboarding?.status === 'submitted') && (
+            <div className="mt-4 rounded-xl border border-ink-10 bg-ink-5/70 p-4 text-[13px] text-ink-60">
+              <p className="font-semibold text-ink">Role onboarding in progress.</p>
+              <p className="mt-1">
+                You have pending Vendor/Organizer onboarding details. Continue from{' '}
+                <Link to="/profile" className="font-semibold text-coral hover:underline">
+                  Account
+                </Link>{' '}
+                to complete or monitor review status.
+              </p>
+            </div>
+          )}
 
         <div className="mt-8 flex gap-2">
           <button

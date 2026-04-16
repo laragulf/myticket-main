@@ -35,7 +35,7 @@ export function EventsPage() {
   const featured = searchParams.get('featured') === 'true';
 
   const [keyword, setKeyword] = useState('');
-  const [category, setCategory] = useState<string>('all');
+  const [category, setCategory] = useState<string>(() => searchParams.get('category')?.trim() || 'all');
   const [city, setCity] = useState<string>('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
@@ -68,6 +68,11 @@ export function EventsPage() {
       setLoading(false);
     });
   }, [filters]);
+
+  useEffect(() => {
+    const c = searchParams.get('category')?.trim();
+    setCategory(c && c.length > 0 ? c : 'all');
+  }, [searchParams]);
 
   return (
     <div className="bg-white">
@@ -167,7 +172,16 @@ export function EventsPage() {
                     </span>
                     <select
                       value={category}
-                      onChange={(e) => setCategory(e.target.value)}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setCategory(v);
+                        setSearchParams((prev) => {
+                          const next = new URLSearchParams(prev);
+                          if (v === 'all') next.delete('category');
+                          else next.set('category', v);
+                          return next;
+                        });
+                      }}
                       className={cn(
                         'h-10 rounded-xl border-2 border-ink-10 bg-white px-3 text-[12px] font-medium text-ink',
                         'outline-none transition-colors focus:border-coral'
