@@ -20,7 +20,9 @@ import {
   isOrganizerDraftReady,
   isTalentDraftReady,
   isVendorDraftReady,
+  TALENT_BIO_MAX_CHARS,
   TALENT_BIO_MIN_CHARS,
+  VENDOR_BIO_MIN_CHARS,
 } from '@/lib/onboardingValidation';
 import { isValidSaudiCity } from '@/lib/saudiLocations';
 import { getSafeRedirectPath } from '@/lib/navigation';
@@ -147,7 +149,10 @@ export function RegisterPage() {
 
   const isCurrentRoleStepValid = useMemo(() => {
     if (role === 'talent') {
-      if (wizardStep === 0) return talentDraft.bio.trim().length >= TALENT_BIO_MIN_CHARS;
+      if (wizardStep === 0) {
+        const len = talentDraft.bio.trim().length;
+        return len >= TALENT_BIO_MIN_CHARS && len <= TALENT_BIO_MAX_CHARS;
+      }
       if (wizardStep === 1) return talentDraft.verificationMedia.length > 0;
       if (wizardStep === 2) {
         return (
@@ -160,13 +165,19 @@ export function RegisterPage() {
       return isTalentDraftReady(talentDraft);
     }
     if (role === 'vendor') {
-      if (wizardStep === 0) return vendorDraft.profileName.trim().length >= 2 && vendorDraft.bio.trim().length >= 25;
+      if (wizardStep === 0) {
+        const len = vendorDraft.bio.trim().length;
+        return vendorDraft.profileName.trim().length >= 2 && len >= VENDOR_BIO_MIN_CHARS && len <= TALENT_BIO_MAX_CHARS;
+      }
       if (wizardStep === 1) return vendorDraft.serviceCategories.length > 0;
       if (wizardStep === 2) return vendorDraft.verificationDocuments.length > 0;
       return isVendorDraftReady(vendorDraft);
     }
     if (role === 'organizer') {
-      if (wizardStep === 0) return organizerDraft.displayName.trim().length >= 2 && organizerDraft.bio.trim().length >= 25;
+      if (wizardStep === 0) {
+        const len = organizerDraft.bio.trim().length;
+        return organizerDraft.displayName.trim().length >= 2 && len >= TALENT_BIO_MIN_CHARS && len <= TALENT_BIO_MAX_CHARS;
+      }
       if (wizardStep === 1) {
         return organizerDraft.email.includes('@') && organizerDraft.location.trim().length >= 2;
       }

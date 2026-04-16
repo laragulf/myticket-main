@@ -1,4 +1,8 @@
+import { useEffect, useMemo, useState } from 'react';
 import type { OrganizerOnboardingDraft } from '@/types/domain';
+import { ProfileImageAvatarInput } from '@/components/auth/ProfileImageAvatarInput';
+import { TALENT_BIO_MAX_CHARS, TALENT_BIO_MIN_CHARS } from '@/lib/onboardingValidation';
+import { getCitiesForRegion, SAUDI_REGIONS } from '@/lib/saudiLocations';
 
 interface OrganizerStepsProps {
   step: number;
@@ -9,6 +13,19 @@ interface OrganizerStepsProps {
 }
 
 export function OrganizerSteps({ step, draft, socialInput, setSocialInput, onChange }: OrganizerStepsProps) {
+  const [saudiRegionId, setSaudiRegionId] = useState('');
+  const organizerCities = useMemo(() => getCitiesForRegion(saudiRegionId), [saudiRegionId]);
+  const locationParts = draft.location.split(' · ');
+  const locationCity = locationParts[locationParts.length - 1]?.trim() ?? draft.location.trim();
+  const bioLen = draft.bio.trim().length;
+
+  useEffect(() => {
+    const match = SAUDI_REGIONS.find((region) =>
+      getCitiesForRegion(region.id).some((city) => city.name.toLowerCase() === locationCity.toLowerCase())
+    );
+    setSaudiRegionId(match?.id ?? '');
+  }, [locationCity]);
+
   if (step === 0) {
     return (
       <div className="space-y-3">
@@ -20,18 +37,27 @@ export function OrganizerSteps({ step, draft, socialInput, setSocialInput, onCha
             className="mt-1.5 w-full rounded-xl border border-ink-10 px-4 py-3 text-[14px]"
           />
         </label>
+        <ProfileImageAvatarInput
+          value={draft.profileImage}
+          onChange={(next) => onChange({ profileImage: next })}
+          displayName={draft.displayName.trim() || 'Organizer'}
+        />
         <label className="block">
-          <span className="text-[12px] font-semibold text-ink-60">Profile image (URL or file name)</span>
-          <input
-            value={draft.profileImage}
-            onChange={(e) => onChange({ profileImage: e.target.value })}
-            className="mt-1.5 w-full rounded-xl border border-ink-10 px-4 py-3 text-[14px]"
-          />
-        </label>
-        <label className="block">
-          <span className="text-[12px] font-semibold text-ink-60">Bio *</span>
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="text-[12px] font-semibold text-ink-60">Bio *</span>
+            <span
+              className={
+                bioLen >= TALENT_BIO_MIN_CHARS && bioLen <= TALENT_BIO_MAX_CHARS
+                  ? 'text-[11px] font-bold text-mint-dark'
+                  : 'text-[11px] font-bold text-ink-40'
+              }
+            >
+              {bioLen} / {TALENT_BIO_MAX_CHARS} (min {TALENT_BIO_MIN_CHARS})
+            </span>
+          </div>
           <textarea
             rows={4}
+            maxLength={TALENT_BIO_MAX_CHARS}
             value={draft.bio}
             onChange={(e) => onChange({ bio: e.target.value })}
             className="mt-1.5 w-full rounded-xl border border-ink-10 px-4 py-3 text-[14px]"
@@ -60,12 +86,43 @@ export function OrganizerSteps({ step, draft, socialInput, setSocialInput, onCha
           />
         </label>
         <label className="block">
-          <span className="text-[12px] font-semibold text-ink-60">Location *</span>
-          <input
-            value={draft.location}
-            onChange={(e) => onChange({ location: e.target.value })}
-            className="mt-1.5 w-full rounded-xl border border-ink-10 px-4 py-3 text-[14px]"
-          />
+          <span className="text-[12px] font-semibold text-ink-60">Saudi region *</span>
+          <select
+            value={saudiRegionId}
+            onChange={(e) => {
+              const id = e.target.value;
+              setSaudiRegionId(id);
+              onChange({ location: '' });
+            }}
+            className="mt-1.5 w-full rounded-xl border border-ink-10 bg-white px-4 py-3 text-[14px]"
+          >
+            <option value="">Select region</option>
+            {SAUDI_REGIONS.map((region) => (
+              <option key={region.id} value={region.id}>
+                {region.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block">
+          <span className="text-[12px] font-semibold text-ink-60">City *</span>
+          <select
+            value={locationCity}
+            onChange={(e) => {
+              const regionName = SAUDI_REGIONS.find((region) => region.id === saudiRegionId)?.name ?? '';
+              const cityName = e.target.value;
+              onChange({ location: regionName ? `${regionName} · ${cityName}` : cityName });
+            }}
+            disabled={!saudiRegionId}
+            className="mt-1.5 w-full rounded-xl border border-ink-10 bg-white px-4 py-3 text-[14px] disabled:cursor-not-allowed disabled:bg-ink-5 disabled:text-ink-40"
+          >
+            <option value="">{saudiRegionId ? 'Select city' : 'Choose a region first'}</option>
+            {organizerCities.map((city) => (
+              <option key={city.id} value={city.name}>
+                {city.name}
+              </option>
+            ))}
+          </select>
         </label>
         <label className="block">
           <span className="text-[12px] font-semibold text-ink-60">Document (optional)</span>

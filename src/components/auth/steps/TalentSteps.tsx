@@ -1,6 +1,6 @@
 import type { TalentOnboardingDraft } from '@/types/domain';
 import { ProfileImageAvatarInput } from '@/components/auth/ProfileImageAvatarInput';
-import { TALENT_BIO_MIN_CHARS } from '@/lib/onboardingValidation';
+import { TALENT_BIO_MAX_CHARS, TALENT_BIO_MIN_CHARS } from '@/lib/onboardingValidation';
 import { getCitiesForRegion, SAUDI_REGIONS } from '@/lib/saudiLocations';
 
 interface TalentStepsProps {
@@ -35,14 +35,17 @@ export function TalentSteps({ step, draft, mediaInput, setMediaInput, onChange }
             <span className="text-[12px] font-semibold text-ink-60">Talent bio *</span>
             <span
               className={
-                bioLen >= TALENT_BIO_MIN_CHARS ? 'text-[11px] font-bold text-mint-dark' : 'text-[11px] font-bold text-ink-40'
+                bioLen >= TALENT_BIO_MIN_CHARS && bioLen <= TALENT_BIO_MAX_CHARS
+                  ? 'text-[11px] font-bold text-mint-dark'
+                  : 'text-[11px] font-bold text-ink-40'
               }
             >
-              {bioLen} / {TALENT_BIO_MIN_CHARS} minimum characters
+              {bioLen} / {TALENT_BIO_MAX_CHARS} (min {TALENT_BIO_MIN_CHARS})
             </span>
           </div>
           <textarea
             rows={5}
+            maxLength={TALENT_BIO_MAX_CHARS}
             value={draft.bio}
             onChange={(e) => onChange({ bio: e.target.value })}
             className="mt-1.5 w-full rounded-xl border border-ink-10 px-4 py-3 text-[14px]"

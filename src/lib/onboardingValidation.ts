@@ -7,6 +7,8 @@ import type {
 import { isValidSaudiCity } from '@/lib/saudiLocations';
 
 export const TALENT_BIO_MIN_CHARS = 30;
+export const TALENT_BIO_MAX_CHARS = 500;
+export const VENDOR_BIO_MIN_CHARS = 25;
 
 export function isBasicValid(basic: BaseRegistrationFields) {
   return (
@@ -21,6 +23,7 @@ export function isTalentDraftReady(draft: TalentOnboardingDraft) {
   const regionOk = Boolean(draft.saudiRegionId) && isValidSaudiCity(draft.saudiRegionId, draft.city.trim());
   return (
     draft.bio.trim().length >= TALENT_BIO_MIN_CHARS &&
+    draft.bio.trim().length <= TALENT_BIO_MAX_CHARS &&
     draft.verificationMedia.length > 0 &&
     draft.acceptedQualityDisclaimer &&
     regionOk
@@ -30,7 +33,8 @@ export function isTalentDraftReady(draft: TalentOnboardingDraft) {
 export function isVendorDraftReady(draft: VendorOnboardingDraft) {
   return (
     draft.profileName.trim().length >= 2 &&
-    draft.bio.trim().length >= 25 &&
+    draft.bio.trim().length >= VENDOR_BIO_MIN_CHARS &&
+    draft.bio.trim().length <= TALENT_BIO_MAX_CHARS &&
     draft.serviceCategories.length > 0 &&
     draft.verificationDocuments.length > 0
   );
@@ -39,7 +43,8 @@ export function isVendorDraftReady(draft: VendorOnboardingDraft) {
 export function isOrganizerDraftReady(draft: OrganizerOnboardingDraft) {
   const coreValid =
     draft.displayName.trim().length >= 2 &&
-    draft.bio.trim().length >= 25 &&
+    draft.bio.trim().length >= TALENT_BIO_MIN_CHARS &&
+    draft.bio.trim().length <= TALENT_BIO_MAX_CHARS &&
     draft.email.includes('@') &&
     draft.location.trim().length >= 2 &&
     draft.ownerName.trim().length >= 2 &&
