@@ -5,6 +5,7 @@ import { CharCounter } from '@/components/ui/form/CharCounter';
 import { Field } from '@/components/ui/form/Field';
 import { InlineNotice } from '@/components/ui/form/InlineNotice';
 import { Select, TextArea, TextInput } from '@/components/ui/form/inputs';
+import { UploadTileInput } from '@/components/ui/form/UploadTileInput';
 import { getCitiesForRegion, SAUDI_REGIONS } from '@/lib/saudiLocations';
 
 interface TalentStepsProps {
@@ -83,48 +84,25 @@ export function TalentSteps({ step, draft, mediaInput, setMediaInput, onChange }
         </div>
 
         <div className="grid gap-2 sm:grid-cols-2">
-          <label className="flex cursor-pointer flex-col rounded-xl border border-dashed border-ink-20 bg-ink-5/50 px-4 py-3 text-[12px] font-semibold text-ink-60 hover:bg-ink-5">
-            <span>Video file</span>
-            <span className="mt-0.5 text-[11px] font-normal text-ink-40">mp4, webm, mov…</span>
-            <input
-              type="file"
-              accept="video/*"
-              className="sr-only"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) appendMedia(draft, `video:${f.name}`, onChange);
-                e.target.value = '';
-              }}
-            />
-          </label>
-          <label className="flex cursor-pointer flex-col rounded-xl border border-dashed border-ink-20 bg-ink-5/50 px-4 py-3 text-[12px] font-semibold text-ink-60 hover:bg-ink-5">
-            <span>Image file</span>
-            <span className="mt-0.5 text-[11px] font-normal text-ink-40">jpg, png, webp…</span>
-            <input
-              type="file"
-              accept="image/*"
-              className="sr-only"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) appendMedia(draft, `image:${f.name}`, onChange);
-                e.target.value = '';
-              }}
-            />
-          </label>
-          <label className="flex cursor-pointer flex-col rounded-xl border border-dashed border-ink-20 bg-ink-5/50 px-4 py-3 text-[12px] font-semibold text-ink-60 hover:bg-ink-5 sm:col-span-2">
-            <span>Certificate or document</span>
-            <span className="mt-0.5 text-[11px] font-normal text-ink-40">pdf, image, or scan</span>
-            <input
-              type="file"
-              accept="image/*,.pdf,application/pdf"
-              className="sr-only"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) appendMedia(draft, `certificate:${f.name}`, onChange);
-                e.target.value = '';
-              }}
-            />
-          </label>
+          <UploadTileInput
+            title="Video file"
+            subtitle="mp4, webm, mov…"
+            accept="video/*"
+            onPick={(file) => appendMedia(draft, `video:${file.name}`, onChange)}
+          />
+          <UploadTileInput
+            title="Image file"
+            subtitle="jpg, png, webp…"
+            accept="image/*"
+            onPick={(file) => appendMedia(draft, `image:${file.name}`, onChange)}
+          />
+          <UploadTileInput
+            title="Certificate or document"
+            subtitle="pdf, image, or scan"
+            accept="image/*,.pdf,application/pdf"
+            className="sm:col-span-2"
+            onPick={(file) => appendMedia(draft, `certificate:${file.name}`, onChange)}
+          />
         </div>
 
         {draft.verificationMedia.length > 0 && (

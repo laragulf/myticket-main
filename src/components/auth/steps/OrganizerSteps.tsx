@@ -5,6 +5,8 @@ import { TALENT_BIO_MAX_CHARS, TALENT_BIO_MIN_CHARS } from '@/lib/onboardingVali
 import { CharCounter } from '@/components/ui/form/CharCounter';
 import { Field } from '@/components/ui/form/Field';
 import { InlineNotice } from '@/components/ui/form/InlineNotice';
+import { SaudiPhoneInput } from '@/components/ui/form/SaudiPhoneInput';
+import { UploadTileInput } from '@/components/ui/form/UploadTileInput';
 import { Select, TextArea, TextInput } from '@/components/ui/form/inputs';
 import { getCitiesForRegion, SAUDI_REGIONS } from '@/lib/saudiLocations';
 
@@ -76,10 +78,9 @@ export function OrganizerSteps({ step, draft, socialInput, setSocialInput, onCha
           />
         </Field>
         <Field label="Contact phone (optional)">
-          <TextInput
+          <SaudiPhoneInput
             value={draft.contactPhone}
-            onChange={(e) => onChange({ contactPhone: e.target.value })}
-            placeholder="+966 ..."
+            onChange={(next) => onChange({ contactPhone: next })}
           />
         </Field>
         <Field label="Saudi region *">
@@ -117,12 +118,27 @@ export function OrganizerSteps({ step, draft, socialInput, setSocialInput, onCha
             ))}
           </Select>
         </Field>
-        <Field label="Document (optional)" helperText="Add an optional verification doc URL or file name (demo).">
-          <TextInput
-            value={draft.optionalDocument ?? ''}
-            onChange={(e) => onChange({ optionalDocument: e.target.value })}
-            placeholder="https://… or document.pdf"
-          />
+        <Field label="Document (optional)" helperText="Upload an optional supporting document (demo).">
+          <div className="space-y-2">
+            <UploadTileInput
+              title="Upload optional document"
+              subtitle="pdf, image, or scan"
+              accept="image/*,.pdf,application/pdf"
+              onPick={(file) => onChange({ optionalDocument: `document:${file.name}` })}
+            />
+            {draft.optionalDocument ? (
+              <div className="flex items-center justify-between rounded-lg border border-ink-10 bg-white px-3 py-2 text-[12px] text-ink-60">
+                <span className="truncate pr-2">{draft.optionalDocument}</span>
+                <button
+                  type="button"
+                  className="font-semibold text-coral"
+                  onClick={() => onChange({ optionalDocument: '' })}
+                >
+                  Remove
+                </button>
+              </div>
+            ) : null}
+          </div>
         </Field>
       </div>
     );

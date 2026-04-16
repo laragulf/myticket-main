@@ -5,6 +5,7 @@ import { CharCounter } from '@/components/ui/form/CharCounter';
 import { Field } from '@/components/ui/form/Field';
 import { InlineNotice } from '@/components/ui/form/InlineNotice';
 import { Select, TextArea, TextInput } from '@/components/ui/form/inputs';
+import { UploadTileInput } from '@/components/ui/form/UploadTileInput';
 import { getCitiesForRegion, SAUDI_REGIONS } from '@/lib/saudiLocations';
 
 interface VendorStepsProps {
@@ -125,25 +126,18 @@ export function VendorSteps({ step, draft, tempInput, setTempInput, onChange }: 
             Add
           </button>
         </div>
-        <label className="mt-2 flex cursor-pointer flex-col rounded-xl border border-dashed border-ink-20 bg-white px-4 py-3 text-[12px] font-semibold text-ink-60 hover:bg-ink-5">
-          <span>Upload document</span>
-          <span className="mt-0.5 text-[11px] font-normal text-ink-40">pdf, image, or scan</span>
-          <input
-            type="file"
-            accept="image/*,.pdf,application/pdf"
-            className="sr-only"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) {
-                const fileValue = `document:${f.name}`;
-                if (!draft.verificationDocuments.includes(fileValue)) {
-                  onChange({ verificationDocuments: [...draft.verificationDocuments, fileValue] });
-                }
-              }
-              e.target.value = '';
-            }}
-          />
-        </label>
+        <UploadTileInput
+          title="Upload document"
+          subtitle="pdf, image, or scan"
+          accept="image/*,.pdf,application/pdf"
+          className="mt-2 bg-white"
+          onPick={(file) => {
+            const fileValue = `document:${file.name}`;
+            if (!draft.verificationDocuments.includes(fileValue)) {
+              onChange({ verificationDocuments: [...draft.verificationDocuments, fileValue] });
+            }
+          }}
+        />
         {draft.verificationDocuments.length > 0 && (
           <ul className="mt-2 space-y-1">
             {draft.verificationDocuments.map((item) => (
