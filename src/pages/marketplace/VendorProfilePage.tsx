@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Star } from '@phosphor-icons/react';
+import { useAuth } from '@/contexts/AuthContext';
+import { createOrganizerEngagementMock } from '@/services/engagementsService';
 import { getVendorById } from '@/services/marketplaceService';
 import type { MarketplaceVendor } from '@/types/domain';
 
 export function VendorProfilePage() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [vendor, setVendor] = useState<MarketplaceVendor | null | undefined>(undefined);
 
   useEffect(() => {
@@ -45,6 +49,23 @@ export function VendorProfilePage() {
               {vendor.city} · ★ {vendor.rating.toFixed(1)}
             </p>
             <p className="mt-6 text-[15px] leading-relaxed text-ink-60">{vendor.bio}</p>
+            {user?.role === 'organizer' && (
+              <button
+                type="button"
+                className="mt-5 rounded-full bg-ink px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-ink-80"
+                onClick={() => {
+                  const engagement = createOrganizerEngagementMock({
+                    targetKind: 'vendor',
+                    targetName: vendor.name,
+                    organizerName: user.name,
+                    organizerCity: user.city,
+                  });
+                  navigate(`/engagements${engagement ? `?focus=${encodeURIComponent(engagement.id)}` : ''}`);
+                }}
+              >
+                Contact vendor
+              </button>
+            )}
           </div>
         </div>
 

@@ -23,6 +23,7 @@ import { EngagementsPage } from '@/pages/marketplace/EngagementsPage';
 import { MarketplacePage } from '@/pages/marketplace/MarketplacePage';
 import { TalentProfilePage } from '@/pages/marketplace/TalentProfilePage';
 import { VendorProfilePage } from '@/pages/marketplace/VendorProfilePage';
+import { OrganizerPortalRedirectPage } from '@/pages/organizer/OrganizerPortalRedirectPage';
 import { ProfilePage } from '@/pages/profile/ProfilePage';
 import { SupportPage } from '@/pages/support/SupportPage';
 import { MyTicketsPage } from '@/pages/tickets/MyTicketsPage';
@@ -62,6 +63,7 @@ export function App() {
           <Route path="/my-tickets" element={<MyTicketsPage />} />
           <Route path="/my-tickets/:ticketId" element={<TicketDetailPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/organizer-portal" element={<OrganizerPortalRedirectPage />} />
           <Route path="/engagements" element={<EngagementsPage />} />
         </Route>
 

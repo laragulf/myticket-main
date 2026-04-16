@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { cn } from '@/lib/utils';
 import { canAccessEngagementsInbox, canBrowseMarketplace } from '@/lib/marketplaceAccess';
+import { isOrganizerUser } from '@/lib/organizerPortal';
 
 export function Navbar() {
   const { user, signOut } = useAuth();
@@ -46,6 +47,7 @@ export function Navbar() {
     );
     return links;
   }, [user]);
+  const profilePath = isOrganizerUser(user) ? '/organizer-portal' : '/profile';
 
   return (
     <IconContext.Provider value={{ weight: 'fill' }}>
@@ -183,7 +185,7 @@ export function Navbar() {
               {user ? (
                 <div className="ml-1 hidden items-center gap-2 sm:flex">
                   <Link
-                    to="/profile"
+                    to={profilePath}
                     className="max-w-[140px] truncate text-[12px] font-bold text-ink hover:text-coral"
                   >
                     {user.name}
@@ -238,7 +240,7 @@ export function Navbar() {
                 {user ? (
                   <>
                     <Link
-                      to="/profile"
+                      to={profilePath}
                       className="text-[14px] font-bold text-ink hover:text-coral"
                       onClick={() => setMobileOpen(false)}
                     >

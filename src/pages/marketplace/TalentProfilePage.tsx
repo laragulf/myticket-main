@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Star } from '@phosphor-icons/react';
+import { useAuth } from '@/contexts/AuthContext';
+import { createOrganizerEngagementMock } from '@/services/engagementsService';
 import { getTalentById } from '@/services/marketplaceService';
 import type { MarketplaceTalent } from '@/types/domain';
 
 export function TalentProfilePage() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [talent, setTalent] = useState<MarketplaceTalent | null | undefined>(undefined);
 
   useEffect(() => {
@@ -45,6 +49,23 @@ export function TalentProfilePage() {
               {talent.city} · ★ {talent.rating.toFixed(1)} · Availability: {talent.availability}
             </p>
             <p className="mt-6 text-[15px] leading-relaxed text-ink-60">{talent.bio}</p>
+            {user?.role === 'organizer' && (
+              <button
+                type="button"
+                className="mt-5 rounded-full bg-ink px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-ink-80"
+                onClick={() => {
+                  const engagement = createOrganizerEngagementMock({
+                    targetKind: 'talent',
+                    targetName: talent.name,
+                    organizerName: user.name,
+                    organizerCity: user.city,
+                  });
+                  navigate(`/engagements${engagement ? `?focus=${encodeURIComponent(engagement.id)}` : ''}`);
+                }}
+              >
+                Contact talent
+              </button>
+            )}
           </div>
         </div>
 

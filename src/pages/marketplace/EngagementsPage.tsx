@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { CalendarDots, CheckCircle, ClockCounterClockwise, UserCircle } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,16 +17,25 @@ import { canBrowseMarketplace } from '@/lib/marketplaceAccess';
 
 export function EngagementsPage() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [list, setList] = useState<MockEngagement[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [availability, setAvailability] = useState(getTalentAvailability());
   const talentReady = user?.role === 'talent' && user?.talentApplicationStatus === 'approved';
+  const isOrganizer = user?.role === 'organizer';
+  const canRespond = Boolean(isOrganizer || user?.role === 'vendor' || talentReady);
 
   useEffect(() => {
     setList(getEngagements());
     setAvailability(getTalentAvailability());
   }, []);
+
+  useEffect(() => {
+    const focusId = searchParams.get('focus');
+    if (!focusId) return;
+    setSelectedId(focusId);
+  }, [searchParams]);
 
   const selected = selectedId ? getEngagementById(selectedId) : undefined;
   const statusCounts = useMemo(
@@ -55,7 +64,7 @@ export function EngagementsPage() {
 
   function onSendMessage() {
     if (!selected) return;
-    addEngagementMessage(selected.id, 'talent', message);
+    addEngagementMessage(selected.id, isOrganizer ? 'organizer' : 'talent', message);
     setMessage('');
     refresh();
   }
@@ -122,7 +131,7 @@ export function EngagementsPage() {
             </button>
           </div>
 
-          {!talentReady && (
+          {!canRespond && (
             <div className="mt-4 rounded-xl border border-lemon bg-lemon/15 p-4 text-[13px] text-ink-60">
               <p className="font-semibold text-ink">Talent approval required for engagement actions.</p>
               <p className="mt-1">
@@ -156,7 +165,7 @@ export function EngagementsPage() {
                     )}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <p className="font-bold text-ink">{e.organizerName}</p>
+                      <p className="font-bold text-ink">{isOrganizer ? e.topic : e.organizerName}</p>
                       <span
                         className={cn(
                           'rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase',
@@ -168,7 +177,7 @@ export function EngagementsPage() {
                         {e.status}
                       </span>
                     </div>
-                    <p className="mt-1 line-clamp-2 text-[12px] text-ink-60">{e.topic}</p>
+                    <p className="mt-1 line-clamp-2 text-[12px] text-ink-60">{isOrganizer ? e.preview : e.topic}</p>
                     <p className="mt-2 text-[11px] text-ink-40">{new Date(e.createdAt).toLocaleDateString()}</p>
                   </button>
                 </li>
@@ -183,7 +192,8 @@ export function EngagementsPage() {
                   <div>
                     <h2 className="text-xl font-extrabold text-ink">{selected.topic}</h2>
                     <p className="mt-1 text-[13px] text-ink-40">
-                      From {selected.organizerName} · {new Date(selected.createdAt).toLocaleString()}
+                      {isOrganizer ? 'Started' : `From ${selected.organizerName}`} ·{' '}
+                      {new Date(selected.createdAt).toLocaleString()}
                     </p>
                   </div>
                   <span
@@ -226,12 +236,14 @@ export function EngagementsPage() {
                     <div className="mt-3 flex gap-2">
                       <input
                         value={message}
-                        disabled={!talentReady}
+                        disabled={!canRespond}
                         onChange={(e) => setMessage(e.target.value)}
-                        placeholder={talentReady ? 'Reply with pricing, terms, or schedule...' : 'Talent approval required'}
+                        placeholder={
+                          canRespond ? 'Reply with pricing, terms, or schedule...' : 'Talent approval required'
+                        }
                         className="w-full rounded-xl border border-ink-10 bg-white px-4 py-2.5 text-[13px]"
                       />
-                      <Button variant="dark" size="md" disabled={!talentReady || message.trim().length < 1} onClick={onSendMessage}>
+                      <Button variant="dark" size="md" disabled={!canRespond || message.trim().length < 1} onClick={onSendMessage}>
                         Send
                       </Button>
                     </div>
@@ -263,12 +275,12 @@ export function EngagementsPage() {
                   </aside>
                 </div>
 
-                {selected.status === 'pending' && (
+                {!isOrganizer && selected.status === 'pending' && (
                   <div className="mt-6 flex flex-wrap gap-3">
-                    <Button variant="dark" size="md" onClick={() => onAccept(selected.id)} disabled={!talentReady}>
+                    <Button variant="dark" size="md" onClick={() => onAccept(selected.id)} disabled={!canRespond}>
                       Accept
                     </Button>
-                    <Button variant="outline" size="md" onClick={() => onDecline(selected.id)} disabled={!talentReady}>
+                    <Button variant="outline" size="md" onClick={() => onDecline(selected.id)} disabled={!canRespond}>
                       Decline
                     </Button>
                   </div>
@@ -276,14 +288,15 @@ export function EngagementsPage() {
                 {selected.status === 'accepted' && (
                   <p className="mt-6 inline-flex items-center gap-2 text-[13px] font-semibold text-mint-dark">
                     <CheckCircle size={16} weight="fill" />
-                    You accepted — availability set to Reserved (demo). You can still manually change availability
-                    above.
+                    {isOrganizer
+                      ? 'Accepted by service provider (demo). Continue coordination in this thread.'
+                      : 'You accepted — availability set to Reserved (demo). You can still manually change availability above.'}
                   </p>
                 )}
                 {selected.status === 'declined' && (
                   <p className="mt-6 inline-flex items-center gap-2 text-[13px] text-ink-60">
                     <ClockCounterClockwise size={16} weight="fill" className="text-ink-40" />
-                    Declined — organizer notified (demo).
+                    {isOrganizer ? 'Declined by service provider (demo).' : 'Declined — organizer notified (demo).'}
                   </p>
                 )}
               </>

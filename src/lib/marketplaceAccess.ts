@@ -7,5 +7,5 @@ export function canBrowseMarketplace(user: MockUser | null | undefined): boolean
 
 /** Engagement inbox (chat with organizers) for Talent and Vendor roles. */
 export function canAccessEngagementsInbox(user: MockUser | null | undefined): boolean {
-  return user?.role === 'talent' || user?.role === 'vendor';
+  return user?.role === 'talent' || user?.role === 'vendor' || user?.role === 'organizer';
 }

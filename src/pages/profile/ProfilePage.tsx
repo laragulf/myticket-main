@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/contexts/NotificationContext';
@@ -8,6 +8,7 @@ import type { OnboardingRole, RoleOnboardingStatus, TalentOnboardingDraft } from
 import { ProfileImageAvatarInput } from '@/components/auth/ProfileImageAvatarInput';
 import { isTalentDraftReady, TALENT_BIO_MIN_CHARS } from '@/lib/onboardingValidation';
 import { getCitiesForRegion, SAUDI_REGIONS } from '@/lib/saudiLocations';
+import { isOrganizerUser } from '@/lib/organizerPortal';
 
 const EMPTY_DRAFT: TalentOnboardingDraft = {
   fullName: '',
@@ -210,6 +211,10 @@ export function ProfilePage() {
         )}
       </article>
     );
+  }
+
+  if (isOrganizerUser(user)) {
+    return <Navigate to="/organizer-portal" replace />;
   }
 
   return (
