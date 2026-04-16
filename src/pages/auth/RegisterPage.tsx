@@ -4,11 +4,13 @@ import { Buildings, MicrophoneStage, Storefront, User } from '@phosphor-icons/re
 import type { Icon } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
-import { OnboardingStepper } from '@/components/auth/OnboardingStepper';
 import { SharedBasicStep } from '@/components/auth/steps/SharedBasicStep';
 import { TalentSteps } from '@/components/auth/steps/TalentSteps';
 import { VendorSteps } from '@/components/auth/steps/VendorSteps';
 import { OrganizerSteps } from '@/components/auth/steps/OrganizerSteps';
+import { OnboardingHeader } from '@/components/auth/OnboardingHeader';
+import { FormSectionCard } from '@/components/ui/form/FormSectionCard';
+import { InlineNotice } from '@/components/ui/form/InlineNotice';
 import type {
   BaseRegistrationFields,
   OrganizerOnboardingDraft,
@@ -145,6 +147,13 @@ export function RegisterPage() {
     if (role === 'talent') return ['Talent profile', 'Verification', 'Preferences'];
     if (role === 'vendor') return ['Vendor profile', 'Services', 'Compliance'];
     return ['Public profile', 'Contacts', 'Entity details', 'Social'];
+  }, [role]);
+
+  const onboardingTitle = useMemo(() => {
+    if (role === 'talent') return 'Talent onboarding';
+    if (role === 'vendor') return 'Vendor onboarding';
+    if (role === 'organizer') return 'Organizer onboarding';
+    return 'Create your account';
   }, [role]);
 
   const isCurrentRoleStepValid = useMemo(() => {
@@ -300,60 +309,64 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="rounded-2xl border border-ink-10 bg-white p-8 shadow-card-md">
-      <h1 className="text-2xl font-extrabold tracking-tight text-ink">Create account</h1>
-      <p className="mt-2 text-[14px] text-ink-60">
-        Fill your basic account information first, then pick how you will use MyTicket.         Already have an account?{' '}
-        <Link to="/login" state={location.state} className="font-semibold text-coral hover:underline">
-          Sign in
-        </Link>
-      </p>
-
+    <div>
       {stage === 'basic' && (
-        <form onSubmit={handleBasicSubmit} className="mt-6 space-y-4">
-          <SharedBasicStep value={basic} onChange={(patch) => setBasic((prev) => ({ ...prev, ...patch }))} />
-          <p className="text-[12px] text-ink-40">
-            By registering you agree to the{' '}
-            <Link to="/terms" className="font-semibold text-coral underline">
-              Terms of Service
+        <FormSectionCard
+          eyebrow="Create account"
+          title="Start with your details"
+          description="Create your MyTicket account, then choose how you’ll use the platform."
+        >
+          <p className="-mt-4 text-[14px] text-ink-60">
+            Already have an account?{' '}
+            <Link to="/login" state={location.state} className="font-semibold text-coral hover:underline">
+              Sign in
             </Link>
-            .
           </p>
-          <Button type="submit" variant="dark" size="md" className="w-full" disabled={!isBasicValid(basic)}>
-            Continue
-          </Button>
-          <div className="relative py-2">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-ink-10" />
+          <form onSubmit={handleBasicSubmit} className="mt-6 space-y-4">
+            <SharedBasicStep value={basic} onChange={(patch) => setBasic((prev) => ({ ...prev, ...patch }))} />
+            <InlineNotice
+              variant="info"
+              title="Terms"
+            >
+              <p className="text-[12px] text-ink-60">
+                By registering you agree to the{' '}
+                <Link to="/terms" className="font-semibold text-coral underline">
+                  Terms of Service
+                </Link>
+                .
+              </p>
+            </InlineNotice>
+            <Button type="submit" variant="dark" size="md" className="w-full" disabled={!isBasicValid(basic)}>
+              Continue
+            </Button>
+            <div className="relative py-2">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-ink-10" />
+              </div>
+              <div className="relative flex justify-center">
+                <span className="bg-white px-3 text-[12px] font-medium text-ink-40">or</span>
+              </div>
             </div>
-            <div className="relative flex justify-center">
-              <span className="bg-white px-3 text-[12px] font-medium text-ink-40">or</span>
-            </div>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="md"
-            className="w-full border-ink-20"
-            onClick={continueWithGoogle}
-            disabled={loading}
-          >
-            Continue with Google
-          </Button>
-        </form>
+            <Button
+              type="button"
+              variant="outline"
+              size="md"
+              className="w-full border-ink-20"
+              onClick={continueWithGoogle}
+              disabled={loading}
+            >
+              Continue with Google
+            </Button>
+          </form>
+        </FormSectionCard>
       )}
 
       {stage === 'role-selection' && (
-        <div className="mt-8">
-          <div className="mb-6 rounded-2xl border border-ink-10 bg-ink-5/60 px-4 py-3">
-            <span className="mb-1.5 block text-[11px] font-medium uppercase tracking-[0.14em] text-ink-40">
-              Onboarding
-            </span>
-            <h2 className="text-[26px] font-extrabold leading-[1.1] tracking-[-0.02em] text-ink">Choose your role</h2>
-            <p className="mt-1 text-[13px] text-ink-60">
-              Select one role to continue onboarding. You can also skip onboarding and continue as guest.
-            </p>
-          </div>
+        <FormSectionCard
+          eyebrow="Onboarding"
+          title="Choose your role"
+          description="Pick one role to continue. You can also skip onboarding and continue as Guest."
+        >
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {ROLE_CARDS.map((card) => {
@@ -401,12 +414,23 @@ export function RegisterPage() {
               Continue as Guest
             </Button>
           </div>
-        </div>
+        </FormSectionCard>
       )}
 
       {stage === 'onboarding' && role !== 'guest' && (
-        <form onSubmit={submitRoleOnboardingFlow} className="mt-6 space-y-4">
-          <OnboardingStepper steps={steps} activeIdx={wizardStep} />
+        <FormSectionCard
+          eyebrow="Onboarding"
+          title={onboardingTitle}
+          description="Complete the steps below. You can go back at any time."
+          className="overflow-hidden p-6"
+        >
+          <OnboardingHeader
+            title={steps[wizardStep] ?? 'Onboarding'}
+            description={role === 'organizer' ? 'Build your public organizer profile (demo).' : undefined}
+            steps={steps}
+            activeIdx={wizardStep}
+          />
+          <form onSubmit={submitRoleOnboardingFlow} className="space-y-4">
 
           {role === 'talent' && (
             <TalentSteps
@@ -436,12 +460,12 @@ export function RegisterPage() {
             />
           )}
 
-          <div className="flex gap-2">
+          <div className="mt-6 flex flex-col gap-2 sm:flex-row">
             <Button
               type="button"
               variant="outline"
               size="md"
-              className="flex-1"
+              className="w-full sm:flex-1"
               onClick={() => {
                 if (wizardStep === 0) {
                   setStage('role-selection');
@@ -457,7 +481,7 @@ export function RegisterPage() {
                 type="button"
                 variant="dark"
                 size="md"
-                className="flex-1"
+                className="w-full sm:flex-1"
                 disabled={!isCurrentRoleStepValid}
                 onClick={() => setWizardStep((s) => Math.min(steps.length - 1, s + 1))}
               >
@@ -468,7 +492,7 @@ export function RegisterPage() {
                 type="submit"
                 variant="dark"
                 size="md"
-                className="flex-1"
+                className="w-full sm:flex-1"
                 loading={loading}
                 disabled={!isCurrentRoleStepValid}
               >
@@ -476,7 +500,8 @@ export function RegisterPage() {
               </Button>
             )}
           </div>
-        </form>
+          </form>
+        </FormSectionCard>
       )}
     </div>
   );

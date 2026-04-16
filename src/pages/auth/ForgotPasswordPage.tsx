@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
+import { FormSectionCard } from '@/components/ui/form/FormSectionCard';
+import { Field } from '@/components/ui/form/Field';
+import { InlineNotice } from '@/components/ui/form/InlineNotice';
+import { TextInput } from '@/components/ui/form/inputs';
 
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -12,34 +16,34 @@ export function ForgotPasswordPage() {
   }
 
   return (
-    <div className="rounded-2xl border border-ink-10 bg-white p-8 shadow-card-md">
-      <h1 className="text-2xl font-extrabold tracking-tight text-ink">Reset password</h1>
-      <p className="mt-2 text-[14px] leading-relaxed text-ink-60">
-        Enter your email and we&apos;ll send you a link to choose a new password. (Demo: no email is sent.)
-      </p>
-
+    <FormSectionCard
+      eyebrow="Account access"
+      title="Reset password"
+      description="Enter your email and we’ll send a link to choose a new password. (Demo: no email is sent.)"
+    >
       {sent ? (
-        <div className="mt-8 rounded-xl bg-mint/20 p-4 text-[14px] text-ink">
-          If an account exists for <strong>{email}</strong>, check your inbox for reset instructions.
-          <div className="mt-4">
+        <InlineNotice variant="success" title="Check your inbox">
+          <p className="text-[13px] text-ink-60">
+            If an account exists for <strong className="text-ink">{email}</strong>, you’ll receive reset instructions.
+          </p>
+          <div className="mt-3">
             <Link to="/login" className="font-semibold text-coral hover:underline">
               Back to sign in
             </Link>
           </div>
-        </div>
+        </InlineNotice>
       ) : (
-        <form onSubmit={onSubmit} className="mt-8 space-y-4">
-          <label className="block">
-            <span className="text-[12px] font-semibold text-ink-60">Email</span>
-            <input
+        <form onSubmit={onSubmit} className="space-y-4">
+          <Field label="Email" htmlFor="forgot-email">
+            <TextInput
+              id="forgot-email"
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-ink-10 px-4 py-3 text-[14px] outline-none focus:border-coral"
               placeholder="you@example.com"
             />
-          </label>
+          </Field>
           <Button type="submit" variant="dark" size="md" className="w-full">
             Send reset link
           </Button>
@@ -51,6 +55,6 @@ export function ForgotPasswordPage() {
           Sign in
         </Link>
       </p>
-    </div>
+    </FormSectionCard>
   );
 }

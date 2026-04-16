@@ -1,6 +1,10 @@
 import type { TalentOnboardingDraft } from '@/types/domain';
 import { ProfileImageAvatarInput } from '@/components/auth/ProfileImageAvatarInput';
 import { TALENT_BIO_MAX_CHARS, TALENT_BIO_MIN_CHARS } from '@/lib/onboardingValidation';
+import { CharCounter } from '@/components/ui/form/CharCounter';
+import { Field } from '@/components/ui/form/Field';
+import { InlineNotice } from '@/components/ui/form/InlineNotice';
+import { Select, TextArea, TextInput } from '@/components/ui/form/inputs';
 import { getCitiesForRegion, SAUDI_REGIONS } from '@/lib/saudiLocations';
 
 interface TalentStepsProps {
@@ -30,28 +34,19 @@ export function TalentSteps({ step, draft, mediaInput, setMediaInput, onChange }
           displayName={draft.fullName.trim() || 'User'}
         />
 
-        <label className="block">
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="text-[12px] font-semibold text-ink-60">Talent bio *</span>
-            <span
-              className={
-                bioLen >= TALENT_BIO_MIN_CHARS && bioLen <= TALENT_BIO_MAX_CHARS
-                  ? 'text-[11px] font-bold text-mint-dark'
-                  : 'text-[11px] font-bold text-ink-40'
-              }
-            >
-              {bioLen} / {TALENT_BIO_MAX_CHARS} (min {TALENT_BIO_MIN_CHARS})
-            </span>
-          </div>
-          <textarea
+        <Field
+          label="Talent bio *"
+          right={<CharCounter valueLength={bioLen} min={TALENT_BIO_MIN_CHARS} max={TALENT_BIO_MAX_CHARS} />}
+          helperText="Write a short overview of what you do and what makes you a great fit."
+        >
+          <TextArea
             rows={5}
             maxLength={TALENT_BIO_MAX_CHARS}
             value={draft.bio}
             onChange={(e) => onChange({ bio: e.target.value })}
-            className="mt-1.5 w-full rounded-xl border border-ink-10 px-4 py-3 text-[14px]"
             placeholder="Share your skills, experience, and specialties."
           />
-        </label>
+        </Field>
       </div>
     );
   }
@@ -59,18 +54,20 @@ export function TalentSteps({ step, draft, mediaInput, setMediaInput, onChange }
   if (step === 1) {
     return (
       <div className="space-y-4">
-        <div>
-          <p className="text-[12px] font-semibold text-ink-60">Verification uploads *</p>
-          <p className="mt-1 text-[11px] leading-relaxed text-ink-40">
-            Add at least one item: video file, image file, URL (video or image), or certificate document.
+        <InlineNotice
+          variant="info"
+          title="Verification uploads *"
+        >
+          <p className="text-[12px]">
+            Add at least one item: video, image, URL, or certificate document (demo).
           </p>
-        </div>
+        </InlineNotice>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <input
+          <TextInput
             value={mediaInput}
             onChange={(e) => setMediaInput(e.target.value)}
-            className="min-w-0 flex-1 rounded-xl border border-ink-10 px-4 py-2.5 text-[14px]"
+            className="min-w-0 flex-1 !py-2.5"
             placeholder="Paste URL (https://…)"
           />
           <button
@@ -155,15 +152,13 @@ export function TalentSteps({ step, draft, mediaInput, setMediaInput, onChange }
 
   return (
     <div className="space-y-4">
-      <label className="block">
-        <span className="text-[12px] font-semibold text-ink-60">Saudi region *</span>
-        <select
+      <Field label="Saudi region *">
+        <Select
           value={draft.saudiRegionId}
           onChange={(e) => {
             const id = e.target.value;
             onChange({ saudiRegionId: id, city: '' });
           }}
-          className="mt-1.5 w-full rounded-xl border border-ink-10 bg-white px-4 py-3 text-[14px]"
         >
           <option value="">Select region</option>
           {SAUDI_REGIONS.map((r) => (
@@ -171,16 +166,14 @@ export function TalentSteps({ step, draft, mediaInput, setMediaInput, onChange }
               {r.name}
             </option>
           ))}
-        </select>
-      </label>
+        </Select>
+      </Field>
 
-      <label className="block">
-        <span className="text-[12px] font-semibold text-ink-60">City *</span>
-        <select
+      <Field label="City *">
+        <Select
           value={draft.city}
           onChange={(e) => onChange({ city: e.target.value })}
           disabled={!draft.saudiRegionId}
-          className="mt-1.5 w-full rounded-xl border border-ink-10 bg-white px-4 py-3 text-[14px] disabled:cursor-not-allowed disabled:bg-ink-5 disabled:text-ink-40"
         >
           <option value="">{draft.saudiRegionId ? 'Select city' : 'Choose a region first'}</option>
           {cities.map((c) => (
@@ -188,8 +181,8 @@ export function TalentSteps({ step, draft, mediaInput, setMediaInput, onChange }
               {c.name}
             </option>
           ))}
-        </select>
-      </label>
+        </Select>
+      </Field>
 
       <label className="inline-flex items-center gap-2 text-[12px] text-ink-60">
         <input

@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { VendorOnboardingDraft } from '@/types/domain';
 import { TALENT_BIO_MAX_CHARS, VENDOR_BIO_MIN_CHARS } from '@/lib/onboardingValidation';
+import { CharCounter } from '@/components/ui/form/CharCounter';
+import { Field } from '@/components/ui/form/Field';
+import { InlineNotice } from '@/components/ui/form/InlineNotice';
+import { Select, TextArea, TextInput } from '@/components/ui/form/inputs';
 import { getCitiesForRegion, SAUDI_REGIONS } from '@/lib/saudiLocations';
 
 interface VendorStepsProps {
@@ -27,48 +31,41 @@ export function VendorSteps({ step, draft, tempInput, setTempInput, onChange }: 
   if (step === 0) {
     return (
       <div className="space-y-4">
-        <label className="block">
-          <span className="text-[12px] font-semibold text-ink-60">Business / profile name *</span>
-          <input
+        <Field label="Business / profile name *">
+          <TextInput
             value={draft.profileName}
             onChange={(e) => onChange({ profileName: e.target.value })}
-            className="mt-1.5 w-full rounded-xl border border-ink-10 px-4 py-3 text-[14px]"
+            placeholder="Your business name"
           />
-        </label>
-        <label className="block">
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="text-[12px] font-semibold text-ink-60">Bio *</span>
-            <span
-              className={
-                bioLen >= VENDOR_BIO_MIN_CHARS && bioLen <= TALENT_BIO_MAX_CHARS
-                  ? 'text-[11px] font-bold text-mint-dark'
-                  : 'text-[11px] font-bold text-ink-40'
-              }
-            >
-              {bioLen} / {TALENT_BIO_MAX_CHARS} (min {VENDOR_BIO_MIN_CHARS})
-            </span>
-          </div>
-          <textarea
+        </Field>
+
+        <Field
+          label="Bio *"
+          right={<CharCounter valueLength={bioLen} min={VENDOR_BIO_MIN_CHARS} max={TALENT_BIO_MAX_CHARS} />}
+          helperText="Describe what you provide, typical scope, and what you’re best at."
+        >
+          <TextArea
             rows={5}
             maxLength={TALENT_BIO_MAX_CHARS}
             value={draft.bio}
             onChange={(e) => onChange({ bio: e.target.value })}
-            className="mt-1.5 w-full rounded-xl border border-ink-10 px-4 py-3 text-[14px]"
             placeholder="Share your services, experience, and specialties."
           />
-        </label>
+        </Field>
       </div>
     );
   }
   if (step === 1) {
     return (
       <div className="space-y-4">
-        <p className="text-[12px] font-semibold text-ink-60">Service categories *</p>
+        <InlineNotice variant="info" title="Service categories *">
+          <p className="text-[12px]">Add categories so organizers can find you (demo).</p>
+        </InlineNotice>
         <div className="flex gap-2">
-          <input
+          <TextInput
             value={tempInput}
             onChange={(e) => setTempInput(e.target.value)}
-            className="w-full rounded-xl border border-ink-10 px-4 py-2.5 text-[14px]"
+            className="!py-2.5"
             placeholder="e.g. Security, Lighting"
           />
           <button
@@ -109,10 +106,10 @@ export function VendorSteps({ step, draft, tempInput, setTempInput, onChange }: 
         <p className="text-[12px] font-semibold text-ink-60">Verification document *</p>
         <p className="mt-1 text-[11px] text-ink-40">Add your license URL or upload a file (demo).</p>
         <div className="mt-3 flex gap-2">
-          <input
+          <TextInput
             value={docInput}
             onChange={(e) => setDocInput(e.target.value)}
-            className="w-full rounded-xl border border-ink-10 bg-white px-4 py-2.5 text-[14px]"
+            className="!py-2.5"
             placeholder="Business license URL"
           />
           <button
@@ -169,16 +166,14 @@ export function VendorSteps({ step, draft, tempInput, setTempInput, onChange }: 
           </ul>
         )}
       </div>
-      <label className="block">
-        <span className="text-[12px] font-semibold text-ink-60">Saudi region *</span>
-        <select
+      <Field label="Saudi region *">
+        <Select
           value={saudiRegionId}
           onChange={(e) => {
             const id = e.target.value;
             setSaudiRegionId(id);
             onChange({ city: '' });
           }}
-          className="mt-1.5 w-full rounded-xl border border-ink-10 bg-white px-4 py-3 text-[14px]"
         >
           <option value="">Select region</option>
           {SAUDI_REGIONS.map((region) => (
@@ -186,15 +181,13 @@ export function VendorSteps({ step, draft, tempInput, setTempInput, onChange }: 
               {region.name}
             </option>
           ))}
-        </select>
-      </label>
-      <label className="block">
-        <span className="text-[12px] font-semibold text-ink-60">City *</span>
-        <select
+        </Select>
+      </Field>
+      <Field label="City *">
+        <Select
           value={draft.city}
           onChange={(e) => onChange({ city: e.target.value })}
           disabled={!saudiRegionId}
-          className="mt-1.5 w-full rounded-xl border border-ink-10 bg-white px-4 py-3 text-[14px] disabled:cursor-not-allowed disabled:bg-ink-5 disabled:text-ink-40"
         >
           <option value="">{saudiRegionId ? 'Select city' : 'Choose a region first'}</option>
           {vendorCities.map((city) => (
@@ -202,17 +195,15 @@ export function VendorSteps({ step, draft, tempInput, setTempInput, onChange }: 
               {city.name}
             </option>
           ))}
-        </select>
-      </label>
-      <label className="block">
-        <span className="text-[12px] font-semibold text-ink-60">Coverage area</span>
-        <input
+        </Select>
+      </Field>
+      <Field label="Coverage area">
+        <TextInput
           value={draft.coverageArea}
           onChange={(e) => onChange({ coverageArea: e.target.value })}
-          className="mt-1.5 w-full rounded-xl border border-ink-10 px-4 py-3 text-[14px]"
           placeholder="e.g. Riyadh + Eastern Province"
         />
-      </label>
+      </Field>
     </div>
   );
 }

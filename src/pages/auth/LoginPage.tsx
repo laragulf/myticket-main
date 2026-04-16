@@ -3,6 +3,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
 import { getSafeRedirectPath } from '@/lib/navigation';
+import { FormSectionCard } from '@/components/ui/form/FormSectionCard';
+import { Field } from '@/components/ui/form/Field';
+import { TextInput } from '@/components/ui/form/inputs';
 
 export function LoginPage() {
   const { signIn, signInGoogle } = useAuth();
@@ -38,41 +41,43 @@ export function LoginPage() {
   }
 
   return (
-    <div className="rounded-2xl border border-ink-10 bg-white p-8 shadow-card-md">
-      <h1 className="text-2xl font-extrabold tracking-tight text-ink">Sign in</h1>
-      <p className="mt-2 text-[14px] text-ink-60">
+    <FormSectionCard
+      eyebrow="Welcome back"
+      title="Sign in"
+      description="Use your email and password to continue."
+    >
+      <p className="-mt-4 text-[14px] text-ink-60">
         New to MyTicket?{' '}
         <Link to="/register" state={registerState} className="font-semibold text-coral hover:underline">
           Create an account
         </Link>
       </p>
 
-      <form onSubmit={onSubmit} className="mt-8 space-y-4">
-        <label className="block">
-          <span className="text-[12px] font-semibold text-ink-60">Email</span>
-          <input
+      <form onSubmit={onSubmit} className="mt-6 space-y-4">
+        <Field label="Email" htmlFor="login-email">
+          <TextInput
+            id="login-email"
             type="email"
             required
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1.5 w-full rounded-xl border border-ink-10 px-4 py-3 text-[14px] outline-none focus:border-coral focus:ring-2 focus:ring-coral/25"
             placeholder="you@example.com"
           />
-        </label>
-        <label className="block">
-          <span className="text-[12px] font-semibold text-ink-60">Password</span>
-          <input
+        </Field>
+        <Field label="Password" htmlFor="login-password">
+          <TextInput
+            id="login-password"
             type="password"
             required
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1.5 w-full rounded-xl border border-ink-10 px-4 py-3 text-[14px] outline-none focus:border-coral"
             placeholder="••••••••"
           />
-        </label>
-        <div className="text-right">
+        </Field>
+        <div className="flex items-center justify-between">
+          <span className="text-[12px] text-ink-40">Demo sign-in (no backend).</span>
           <Link to="/forgot-password" className="text-[13px] font-semibold text-coral hover:underline">
             Forgot password?
           </Link>
@@ -101,6 +106,6 @@ export function LoginPage() {
       >
         Continue with Google
       </Button>
-    </div>
+    </FormSectionCard>
   );
 }
